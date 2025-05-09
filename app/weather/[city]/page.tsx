@@ -33,6 +33,8 @@ interface WeatherData {
   };
 }
 
+const API_KEY = '0d5603261a7e0c603fd44afa4ce53b39';
+
 export default function WeatherPage({ params }: { params: { city: string } }) {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -43,27 +45,45 @@ export default function WeatherPage({ params }: { params: { city: string } }) {
     const fetchWeather = async () => {
       try {
         setLoading(true);
+        setError(null);
+        
         const response = await axios.get(
           `https://api.openweathermap.org/data/2.5/weather`,
           {
             params: {
               q: params.city,
-              appid: process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY,
+              appid: API_KEY,
               units: unit,
             },
           }
         );
-        setWeatherData(response.data);
-        setError(null);
-      } catch (err) {
-        setError('Failed to fetch weather data. Please try again later.');
+        
+        if (response.data) {
+          setWeatherData(response.data);
+        } else {
+          throw new Error('No weather data received');
+        }
+      } catch (err: any) {
         console.error('Error fetching weather:', err);
+        if (err.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          setError(`Error: ${err.response.data.message || 'Failed to fetch weather data'}`);
+        } else if (err.request) {
+          // The request was made but no response was received
+          setError('No response from weather service. Please try again later.');
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          setError('Failed to fetch weather data. Please try again later.');
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchWeather();
+    if (params.city) {
+      fetchWeather();
+    }
   }, [params.city, unit]);
 
   if (loading) {
@@ -80,6 +100,13 @@ export default function WeatherPage({ params }: { params: { city: string } }) {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-500 mb-2">Error</h2>
           <p className="text-gray-600">{error}</p>
+          <a
+            href="/"
+            className="inline-flex items-center text-blue-600 hover:text-blue-800 mt-4 group"
+          >
+            <ArrowLeftIcon className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+            Back to Search
+          </a>
         </div>
       </div>
     );
