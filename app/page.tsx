@@ -21,6 +21,7 @@ export default function Home() {
   const [page, setPage] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState('India');
 
   useEffect(() => {
     setMounted(true);
@@ -35,7 +36,9 @@ export default function Home() {
           params: {
             limit: 20,
             offset: page * 20,
-            where: search ? `search(name, "${search}")` : undefined,
+            where: search 
+              ? `search(name, "${search}")`
+              : `cou_name_en = "${selectedCountry}"`,
             order_by: 'name ASC',
           },
         }
@@ -61,10 +64,20 @@ export default function Home() {
     setPage(0);
     setHasMore(true);
     fetchCities();
-  }, [search]);
+  }, [search, selectedCountry]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
+    if (e.target.value) {
+      setSelectedCountry(''); // Clear country filter when searching
+    } else {
+      setSelectedCountry('India'); // Reset to India when search is cleared
+    }
+  };
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedCountry(e.target.value);
+    setSearch(''); // Clear search when changing country
   };
 
   if (!mounted) {
@@ -99,15 +112,33 @@ export default function Home() {
           Weather Forecast
         </h1>
         
-        <div className="relative mb-8">
-          <input
-            type="text"
-            placeholder="Search for a city..."
-            value={search}
-            onChange={handleSearchChange}
-            className="w-full px-4 py-3 pl-12 rounded-xl border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-          />
-          <MagnifyingGlassIcon className="h-5 w-5 absolute left-4 top-3.5 text-gray-400" />
+        <div className="flex gap-4 mb-8">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder="Search for a city..."
+              value={search}
+              onChange={handleSearchChange}
+              className="w-full px-4 py-3 pl-12 rounded-xl border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            />
+            <MagnifyingGlassIcon className="h-5 w-5 absolute left-4 top-3.5 text-gray-400" />
+          </div>
+          <select
+            value={selectedCountry}
+            onChange={handleCountryChange}
+            className="px-4 py-3 rounded-xl border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+          >
+            <option value="India">India</option>
+            <option value="United States">United States</option>
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Canada">Canada</option>
+            <option value="Australia">Australia</option>
+            <option value="Japan">Japan</option>
+            <option value="China">China</option>
+            <option value="Germany">Germany</option>
+            <option value="France">France</option>
+            <option value="Brazil">Brazil</option>
+          </select>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
